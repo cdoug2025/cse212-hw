@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
 public static class SetsAndMaps
 {
@@ -21,8 +23,17 @@ public static class SetsAndMaps
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
     public static string[] FindPairs(string[] words)
     {
-        // TODO Problem 1 - ADD YOUR CODE HERE
-        return [];
+        var seenPairs = new HashSet<string>();
+        var pairsSet = new HashSet<string>();
+        foreach (var pair in words) {
+            var neededPair = $"{pair[1]}{pair[0]}";
+            if (seenPairs.Contains(neededPair)) {
+                pairsSet.Add($"{pair} & {neededPair}");
+            }
+            seenPairs.Add(pair);
+        }
+        var pairsArray = pairsSet.ToArray();
+        return pairsArray;
     }
 
     /// <summary>
@@ -42,7 +53,16 @@ public static class SetsAndMaps
         foreach (var line in File.ReadLines(filename))
         {
             var fields = line.Split(",");
-            // TODO Problem 2 - ADD YOUR CODE HERE
+            var degree = fields[3];
+            
+            if (degrees.ContainsKey(degree))
+            {
+                degrees[degree] += 1;
+            }
+            else
+            {
+                degrees[degree] = 1;
+            }
         }
 
         return degrees;
@@ -66,8 +86,50 @@ public static class SetsAndMaps
     /// </summary>
     public static bool IsAnagram(string word1, string word2)
     {
-        // TODO Problem 3 - ADD YOUR CODE HERE
-        return false;
+        //  Test for null values and remove spaces by converting from wordN to cleanedN where cleanedN is a lowercase array
+        if (word1 == null || word2 == null)
+        {
+            return false;
+        }
+
+        var cleaned1 = new string(word1.Where(char.IsLetterOrDigit).ToArray()).ToLower();
+        var cleaned2 = new string(word2.Where(char.IsLetterOrDigit).ToArray()).ToLower();
+
+        // if cleaned1 & cleaned2 are not the same length, they are not anagrams
+        if (cleaned1.Length != cleaned2.Length)
+        {
+            return false;
+        }
+
+        var dictComparer = new Dictionary<char, int>();
+
+        // Convert cleaned1 into a dictionary where the letter is the key and the value is how many times the letter is in the word
+        foreach (char letter in cleaned1)
+        {
+            if (dictComparer.ContainsKey(letter))
+            {
+                dictComparer[letter] += 1;
+            }
+            else
+            {
+                dictComparer[letter] = 1;
+            }
+        }
+
+        // Convert cleaned2 to the same dictionary, but count down so if the words are anagrams everything ends at 0
+        foreach (char letter in cleaned2)
+        {
+            if (dictComparer.ContainsKey(letter))
+            {
+                dictComparer[letter] -= 1;
+            }
+            else
+            {
+                dictComparer[letter] = -1;
+            }
+        }
+
+        return dictComparer.Values.All(value => value == 0); // Return true if all values are 0
     }
 
     /// <summary>
@@ -101,6 +163,11 @@ public static class SetsAndMaps
         // on those classes so that the call to Deserialize above works properly.
         // 2. Add code below to create a string out each place a earthquake has happened today and its magitude.
         // 3. Return an array of these string descriptions.
-        return [];
+        string[] eqSummary = new string[featureCollection.features.Length];
+        for (int i = 0; i < featureCollection.features.Length; i++)
+        {
+            eqSummary[i] = string.Join(featureCollection.features[i].properties.place, " - Mag ", featureCollection.features[i].properties.mag);
+        }
+        return eqSummary;
     }
 }
